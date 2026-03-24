@@ -1,31 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  Activity,
-  Cpu,
-  Layers,
-  ShieldCheck,
-  Zap,
-  Menu,
-  X,
-  Monitor,
-  Briefcase,
-  Terminal as TerminalIcon,
-  Search,
-  Globe,
-  Sun,
-  Moon,
-  Linkedin,
-  Mail,
-  Phone,
-  ExternalLink,
-  Copy,
-  Check,
-  Sparkles,
-  ChevronDown,
-  ChevronRight,
-  BarChart3,
-  PieChart
-} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Chart as ChartJS,
@@ -434,42 +407,29 @@ const SetupAccordion = () => {
   return (
     <div className="space-y-4">
       {setupSteps.map((step, index) => (
-        <motion.div
-          key={index}
-          className="glass-panel overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-        >
-          <button
-            className="setup-step w-full p-5 flex justify-between items-center text-left hover:bg-white/5 transition-colors"
+        <div key={index} className="glass-panel overflow-hidden">
+          <div
+            className="setup-step p-5 flex justify-between items-center cursor-pointer"
             onClick={() => toggleItem(index)}
           >
             <h4 className="text-sm font-bold uppercase text-[#00F5FF]">
               {String.fromCharCode(10112 + index)} {step.title}
             </h4>
-            <motion.span
-              className="text-[#00F5FF] text-xl"
-              animate={{ rotate: openItems.has(index) ? 90 : 0 }}
-              transition={{ duration: 0.2 }}
+            <span
+              className="text-[#00F5FF] text-xl transition-transform"
+              style={{ transform: openItems.has(index) ? 'rotate(90deg)' : 'rotate(0deg)' }}
             >
               +
-            </motion.span>
-          </button>
-          <AnimatePresence>
-            {openItems.has(index) && (
-              <motion.div
-                className="setup-content p-5 pt-0 ml-5 text-sm text-gray-400 bg-black/20"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                {step.content}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+            </span>
+          </div>
+          <div
+            className={`setup-content p-5 pt-0 ml-5 text-sm text-gray-400 bg-black/20 border-l-2 border-[#00F5FF] ${
+              openItems.has(index) ? 'block' : 'hidden'
+            }`}
+          >
+            {step.content}
+          </div>
+        </div>
       ))}
     </div>
   );
@@ -488,10 +448,10 @@ export default function ConsultantPage() {
   }, []);
 
   const navItems = [
-    { id: 'hero', label: '01_Núcleo', icon: Monitor },
-    { id: 'setup', label: '02_Setup_OS', icon: TerminalIcon },
-    { id: 'analytics', label: '03_Impacto', icon: BarChart3 },
-    { id: 'contact', label: '04_Conexión', icon: Mail },
+    { id: 'hero', label: '01_Núcleo', icon: '&#9881;' },
+    { id: 'setup', label: '02_Setup_OS', icon: '&#9000;' },
+    { id: 'analytics', label: '03_Impacto', icon: '&#128202;' },
+    { id: 'contact', label: '04_Conexión', icon: '&#9993;' },
   ];
 
   return (
@@ -525,7 +485,7 @@ export default function ConsultantPage() {
                     : 'text-gray-500 hover:text-[#00F5FF] border-transparent'
                 } relative`}
               >
-                <item.icon size={16} />
+                <span className="text-lg" dangerouslySetInnerHTML={{ __html: item.icon }} />
                 {item.label}
               </button>
             ))}
@@ -580,9 +540,9 @@ export default function ConsultantPage() {
 
                 <div className="grid md:grid-cols-3 gap-6">
                   {[
-                    { icon: ShieldCheck, label: "Disponibilidad SLA", value: "99.9%", color: "#00F5FF" },
-                    { icon: Zap, label: "Ahorro Cloud Medio", value: "40%", color: "#00FF9C" },
-                    { icon: Activity, label: "Automatización", value: "100%", color: "#9D00FF" }
+                    { icon: '&#9889;', label: "Disponibilidad SLA", value: "99.9%", color: "#00F5FF" },
+                    { icon: '&#8681;', label: "Ahorro Cloud Medio", value: "40%", color: "#00FF9C" },
+                    { icon: '&#9881;', label: "Automatización", value: "100%", color: "#9D00FF" }
                   ].map((stat, i) => (
                     <motion.div
                       key={i}
@@ -592,7 +552,7 @@ export default function ConsultantPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: i * 0.1 }}
                     >
-                      <stat.icon className="text-2xl mb-2 mx-auto" style={{ color: stat.color }} />
+                      <div className="text-2xl mb-2 mx-auto" style={{ color: stat.color }} dangerouslySetInnerHTML={{ __html: stat.icon }} />
                       <div className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">{stat.label}</div>
                       <div className="text-4xl font-black text-white">{stat.value}</div>
                     </motion.div>
@@ -672,24 +632,18 @@ export default function ConsultantPage() {
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="flex items-center gap-2 text-[#00F5FF] mb-2">
-                            <Mail size={18} />
+                            <span className="text-xl">&#9993;</span>
                             <span className="text-[10px] font-black tracking-widest uppercase">Punto de Email</span>
                           </div>
                           <h4 className="text-lg md:text-xl font-bold text-white">studiodarkroot@gmail.com</h4>
                         </div>
-                        <button
-                          onClick={() => copyToClipboard('studiodarkroot@gmail.com')}
-                          className="p-2 hover:bg-white/10 rounded-md transition-colors"
-                        >
-                          {copied ? <Check size={16} className="text-[#00FF9C]" /> : <Copy size={16} className="text-gray-500" />}
-                        </button>
                       </div>
                     </div>
 
                     <div className="glass-panel p-8">
                       <div>
                         <div className="flex items-center gap-2 text-[#00FF9C] mb-2">
-                          <Phone size={18} />
+                          <span className="text-xl">&#9742;</span>
                           <span className="text-[10px] font-black tracking-widest uppercase">Línea Segura</span>
                         </div>
                         <h4 className="text-3xl font-black tracking-widest text-white">+34 742098040</h4>
@@ -707,15 +661,13 @@ export default function ConsultantPage() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="text-3xl text-[#00F5FF] group-hover:scale-110 transition-transform">
-                            <Linkedin />
-                          </div>
+                          <div className="text-3xl text-[#00F5FF] group-hover:scale-110 transition-transform">&#128188;</div>
                           <div>
                             <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Nodo Corporativo</span>
                             <span className="text-lg font-bold uppercase text-white group-hover:text-[#00F5FF] transition-colors">LinkedIn Profile</span>
                           </div>
                         </div>
-                        <ExternalLink size={20} className="text-gray-600 group-hover:text-[#00F5FF]" />
+                        <span className="text-xl text-gray-600 group-hover:text-[#00F5FF]">&#8599;</span>
                       </div>
                     </a>
 
@@ -727,15 +679,13 @@ export default function ConsultantPage() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="text-3xl text-[#9D00FF] group-hover:scale-110 transition-transform">
-                            <Monitor />
-                          </div>
+                          <div className="text-3xl text-[#9D00FF] group-hover:scale-110 transition-transform">&#128187;</div>
                           <div>
                             <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Host Personal</span>
                             <span className="text-lg font-bold uppercase text-white group-hover:text-[#9D00FF] transition-colors">Portfolio Web</span>
                           </div>
                         </div>
-                        <ExternalLink size={20} className="text-gray-600 group-hover:text-[#9D00FF]" />
+                        <span className="text-xl text-gray-600 group-hover:text-[#9D00FF]">&#8599;</span>
                       </div>
                     </a>
                   </div>
