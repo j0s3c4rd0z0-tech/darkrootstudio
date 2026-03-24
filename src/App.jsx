@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { 
-  Activity, 
-  Cpu, 
-  Layers, 
-  ShieldCheck, 
-  Zap, 
-  Menu, 
+import {
+  Activity,
+  Cpu,
+  Layers,
+  ShieldCheck,
+  Zap,
+  Menu,
   X,
   Monitor,
   Briefcase,
@@ -23,6 +23,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ConsultantPage from './features/consultant/ConsultantPage';
 
 // --- Cyber-Electric Logo Component (Official Replica + Advanced VFX) ---
 const DarkrootLogo = ({ className = "", isDark }) => {
@@ -217,6 +218,7 @@ export default function App() {
     { id: 'cases', label: '03_LOGS', icon: Briefcase },
     { id: 'stack', label: '04_STACK', icon: Cpu },
     { id: 'pricing', label: '05_PLAN', icon: Zap },
+    { id: 'consultant', label: '00_CONSULTANT', icon: TerminalIcon },
     { id: 'contact', label: '06_CONNECT', icon: Mail },
   ];
 
@@ -483,6 +485,18 @@ export default function App() {
                         </GlassPanel>
                       ))}
                    </div>
+                )}
+
+                {activeTab === 'consultant' && (
+                  <div className="space-y-8">
+                    <div className="text-center">
+                      <h3 className={`text-4xl font-black uppercase italic tracking-tighter ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        Consultant Mode
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-4">Advanced terminal interface loading...</p>
+                      <ConsultantPage />
+                    </div>
+                  </div>
                 )}
 
               </motion.div>
