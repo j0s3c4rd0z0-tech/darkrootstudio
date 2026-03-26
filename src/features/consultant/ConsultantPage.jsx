@@ -1,451 +1,700 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DarkRoot Studio | System Interface</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Google Fonts: JetBrains Mono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+import { Bar, Doughnut } from 'react-chartjs-2';
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'deep-void': '#0A0A0F',
-                        'electric-cyan': '#00F5FF',
-                        'neon-magenta': '#FF007A',
-                        'terminal-emerald': '#00FF9C',
-                        'metal-slate': '#1A1A24',
-                    },
-                    fontFamily: {
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                    },
-                    backgroundImage: {
-                        'grid-pattern': 'linear-gradient(to right, rgba(0, 245, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 245, 255, 0.05) 1px, transparent 1px)',
-                    }
-                }
-            }
-        }
-    </script>
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
-    <style>
-        body {
-            background-color: #0A0A0F;
-            color: #00FF9C;
-            font-family: 'JetBrains Mono', monospace;
-            text-transform: uppercase;
-            overflow-x: hidden;
-            margin: 0;
-        }
+// --- Canvas Components ---
+const ParticleBackground = () => {
+  const canvasRef = useRef(null);
+  const particlesRef = useRef([]);
 
-        .scanlines {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 9999;
-        }
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let animationId;
 
-        .vignette {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle, transparent 50%, rgba(10, 10, 15, 0.9) 100%);
-            pointer-events: none;
-            z-index: 9998;
-        }
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
 
-        @keyframes flicker {
-            0% { opacity: 1; }
-            3% { opacity: 0.4; }
-            6% { opacity: 1; }
-            7% { opacity: 0.4; }
-            8% { opacity: 1; }
-            10% { opacity: 0.1; }
-            11% { opacity: 1; }
-            100% { opacity: 1; }
-        }
+    const initParticles = () => {
+      particlesRef.current = Array.from({ length: 50 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        size: Math.random() * 2
+      }));
+    };
 
-        .glitch-flicker { animation: flicker 4s infinite; }
-        .glow-cyan { text-shadow: 0 0 8px rgba(0, 245, 255, 0.6); }
-        .glow-magenta { text-shadow: 0 0 8px rgba(255, 0, 122, 0.6); }
-        .glow-emerald { text-shadow: 0 0 8px rgba(0, 255, 156, 0.6); }
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#00F5FF';
+      ctx.globalAlpha = 0.5;
 
-        .border-glow-cyan {
-            box-shadow: 0 0 10px rgba(0, 245, 255, 0.2), inset 0 0 10px rgba(0, 245, 255, 0.1);
-            border: 1px solid #00F5FF;
-        }
+      particlesRef.current.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
 
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin: auto;
-            height: 350px;
-        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0A0A0F; }
-        ::-webkit-scrollbar-thumb { background: #1A1A24; border: 1px solid #00FF9C; }
+      animationId = requestAnimationFrame(animate);
+    };
 
-        #boot-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0A0A0F;
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 2rem;
-            color: #00FF9C;
-        }
+    resizeCanvas();
+    initParticles();
+    animate();
 
-        .typewriter-text {
-            border-right: 2px solid #00FF9C;
-            animation: blinkCursor 0.75s step-end infinite;
-            white-space: nowrap;
-            overflow: hidden;
-        }
+    const handleResize = () => {
+      resizeCanvas();
+      initParticles();
+    };
 
-        @keyframes blinkCursor {
-            from, to { border-color: transparent }
-            50% { border-color: #00FF9C; }
-        }
+    window.addEventListener('resize', handleResize);
 
-        .terminal-input {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #00F5FF;
-            width: 100%;
-        }
-    </style>
-</head>
-<body class="bg-deep-void text-terminal-emerald bg-grid-pattern bg-[length:40px_40px] relative">
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+  }, []);
 
-    <div class="scanlines"></div>
-    <div class="vignette"></div>
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 z-0 pointer-events-none opacity-20"
+    />
+  );
+};
 
-    <!-- Boot Sequence -->
-    <div id="boot-screen">
-        <div id="boot-text" class="text-sm md:text-base typewriter-text"></div>
-    </div>
+const DarkRootLogo = ({ className = "w-40 h-40" }) => {
+  const canvasRef = useRef(null);
 
-    <!-- Main Interface -->
-    <div id="os-interface" class="hidden min-h-screen flex flex-col relative z-10">
-        
-        <!-- Top Status Bar -->
-        <header class="w-full bg-metal-slate border-b border-terminal-emerald/30 p-2 md:p-4 flex flex-col md:flex-row justify-between items-center text-xs md:text-sm fixed top-0 z-50">
-            <div class="flex space-x-4 mb-2 md:mb-0">
-                <span class="text-electric-cyan glow-cyan">[ADMIN]: J.CARDOZO</span>
-                <span class="hidden md:inline">|</span>
-                <span>OS_LEVEL: <span class="text-terminal-emerald glow-emerald">PRO_V2</span></span>
-            </div>
-            <div class="flex space-x-4">
-                <span>UPTIME: <span id="uptime-counter" class="text-electric-cyan">99.999%</span></span>
-                <span class="hidden md:inline">|</span>
-                <span>LATENCY: <span class="glitch-flicker text-neon-magenta">7MS</span></span>
-            </div>
-        </header>
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let animationId;
+    let angle = 0;
 
-        <main class="flex-grow pt-24 pb-12 px-4 md:px-8 max-w-7xl mx-auto w-full">
-            
-            <!-- Hero Section -->
-            <section id="hero" class="mb-16">
-                <p class="text-xs text-electric-cyan mb-2">>&nbsp;./ESTABLISHING_AUTHORITY.SH</p>
-                <h1 class="text-4xl md:text-6xl font-bold mb-4 glow-emerald">DARKROOT<span class="text-electric-cyan glow-cyan">_STUDIO</span></h1>
-                <h2 class="text-xl md:text-2xl text-terminal-emerald/80 mb-6">[ HIGH-END INFRASTRUCTURE & CREATIVE ENGINEERING ]</h2>
-                
-                <div class="bg-metal-slate border-l-4 border-electric-cyan p-6 shadow-lg shadow-electric-cyan/10">
-                    <p class="text-sm md:text-base leading-relaxed normal-case">
-                        "Elevating the technical web standard." We merge the robustness of <span class="text-neon-magenta font-bold uppercase glow-magenta">SRE</span> with <span class="text-electric-cyan font-bold uppercase">Premium Frontend</span> design and immersive soundscapes. We don't just manage clouds; we engineer experiences that breathe technical authority.
-                    </p>
-                    <div class="mt-6 flex flex-wrap gap-4">
-                        <button onclick="scrollToSection('projects')" class="bg-electric-cyan/10 border border-electric-cyan text-electric-cyan px-4 py-2 hover:bg-electric-cyan hover:text-deep-void transition-all duration-300 shadow-[0_0_10px_rgba(0,245,255,0.3)]">
-                            [ VIEW_NODES (PROJECTS) ]
-                        </button>
-                        <button onclick="scrollToSection('contact')" class="bg-transparent border border-neon-magenta text-neon-magenta px-4 py-2 hover:bg-neon-magenta hover:text-white transition-all duration-300">
-                            [ OPEN_TERMINAL_CONTACT ]
-                        </button>
-                    </div>
-                </div>
-            </section>
+    const drawLogo = () => {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const r = 60;
 
-            <!-- Technical Profile & Radar Chart -->
-            <section id="sys-info" class="mb-16">
-                <div class="flex items-center mb-6">
-                    <span class="text-neon-magenta mr-2 text-xl">#</span>
-                    <h3 class="text-2xl font-bold glow-emerald">SYS_INFO: CORE_CAPABILITIES</h3>
-                </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                    <div class="space-y-6">
-                        <p class="text-xs normal-case text-terminal-emerald/70">Capabilities updated for 2026. Focus on the Power Pentagon (Total balance between infrastructure and user experience).</p>
-                        <div class="border border-terminal-emerald/30 p-4 bg-deep-void relative overflow-hidden">
-                            <h4 class="text-electric-cyan mb-2">>&nbsp;FRONTEND_AUTHORITY</h4>
-                            <p class="text-xs normal-case text-gray-300">React, Tailwind, Three.js, and high-performance animations. Interfaces that feel like operating systems.</p>
-                        </div>
-                        <div class="border border-neon-magenta/30 p-4 bg-deep-void relative overflow-hidden">
-                            <h4 class="text-neon-magenta mb-2">>&nbsp;SENSORIAL_SOUND_DESIGN</h4>
-                            <p class="text-xs normal-case text-gray-300">Original sound design for interfaces, reactive music, and ambient soundscapes for branding.</p>
-                        </div>
-                    </div>
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    <!-- Radar Chart: Adjusted for a strong pentagon -->
-                    <div class="bg-metal-slate border-glow-cyan p-4 relative">
-                        <div class="chart-container">
-                            <canvas id="skillsRadarChart"></canvas>
-                        </div>
-                        <p class="text-center text-xs mt-4 text-terminal-emerald/60">CORE STATUS: 100% OPERATIONAL</p>
-                    </div>
-                </div>
-            </section>
+      // Rotating Outer Rings
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.strokeStyle = '#9D00FF';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 10]);
+      ctx.beginPath();
+      ctx.arc(0, 0, r + 15, 0, Math.PI * 2);
+      ctx.stroke();
 
-            <!-- Featured Projects Section -->
-            <section id="projects" class="mb-16">
-                <div class="flex items-center mb-6">
-                    <span class="text-neon-magenta mr-2 text-xl">#</span>
-                    <h3 class="text-2xl font-bold glow-emerald">DEPLOYED_NODES: PROJECT_ARCHIVE</h3>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Project 1 -->
-                    <div class="group relative bg-metal-slate border border-terminal-emerald/20 overflow-hidden">
-                        <div class="h-48 bg-deep-void flex items-center justify-center border-b border-terminal-emerald/20 overflow-hidden">
-                            <span class="text-xs text-terminal-emerald/20 group-hover:scale-110 transition-transform duration-700">[ GCP_INFRASTRUCTURE_IMG ]</span>
-                        </div>
-                        <div class="p-6">
-                            <h4 class="text-lg font-bold text-electric-cyan">GCP_AUTOMATED_CLUSTER</h4>
-                            <p class="text-xs normal-case text-gray-400 mt-2 mb-4">GKE cluster deployment with auto-scaling and advanced monitoring via Terraform.</p>
-                            <a href="#" class="text-xs text-neon-magenta hover:glow-magenta transition-all">[ EXPLORE_REPOSITORY ]</a>
-                        </div>
-                    </div>
-                    <!-- Project 2 -->
-                    <div class="group relative bg-metal-slate border border-terminal-emerald/20 overflow-hidden">
-                        <div class="h-48 bg-deep-void flex items-center justify-center border-b border-terminal-emerald/20 overflow-hidden">
-                            <span class="text-xs text-terminal-emerald/20 group-hover:scale-110 transition-transform duration-700">[ CYBERPUNK_FRONTEND_IMG ]</span>
-                        </div>
-                        <div class="p-6">
-                            <h4 class="text-lg font-bold text-electric-cyan">NEURAL_UI_DASHBOARD</h4>
-                            <p class="text-xs normal-case text-gray-400 mt-2 mb-4">Interactive dashboard for IoT sensor control with visual aesthetics inspired by Blade Runner.</p>
-                            <a href="#" class="text-xs text-neon-magenta hover:glow-magenta transition-all">[ VIEW_LIVE_DEMO ]</a>
-                        </div>
-                    </div>
-                </div>
-            </section>
+      ctx.rotate(-angle * 2);
+      ctx.strokeStyle = '#00F5FF';
+      ctx.setLineDash([15, 15]);
+      ctx.beginPath();
+      ctx.arc(0, 0, r + 5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
 
-            <!-- Service Matrix: Differential Pricing -->
-            <section id="services" class="mb-16">
-                <div class="flex items-center mb-6">
-                    <span class="text-neon-magenta mr-2 text-xl">#</span>
-                    <h3 class="text-2xl font-bold glow-emerald">PREMIUM_MODULES: SERVICES</h3>
-                </div>
+      angle += 0.005;
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="bg-metal-slate border border-terminal-emerald/30 hover:border-electric-cyan cursor-pointer transition-all duration-300 p-6 flex flex-col justify-between" onclick="openModal('modal-sync')">
-                        <div>
-                            <div class="text-2xl mb-4 text-electric-cyan">[ ⚲ ]</div>
-                            <h4 class="text-lg font-bold mb-2">THE_SYNC (DIAGNOSTICS)</h4>
-                            <p class="text-xs normal-case text-gray-400 mb-4">Complete audit. We identify bottlenecks and security gaps.</p>
-                        </div>
-                        <div class="text-xs text-terminal-emerald border-t border-terminal-emerald/20 pt-2 flex justify-between">
-                            <span>SESSION: 90 MIN</span>
-                            <span class="text-electric-cyan">€150</span>
-                        </div>
-                    </div>
+      // Base Hexagon styling
+      ctx.strokeStyle = '#00F5FF';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#00F5FF';
+      ctx.shadowBlur = 10;
+      ctx.setLineDash([]);
 
-                    <div class="bg-metal-slate border border-terminal-emerald/30 hover:border-neon-magenta cursor-pointer transition-all duration-300 p-6 flex flex-col justify-between" onclick="openModal('modal-cyber')">
-                        <div>
-                            <div class="text-2xl mb-4 text-neon-magenta">[ ⚡ ]</div>
-                            <h4 class="text-lg font-bold mb-2">CYBER-CORE (EXP)</h4>
-                            <p class="text-xs normal-case text-gray-400 mb-4">High-impact interface development with exclusive sound design.</p>
-                        </div>
-                        <div class="text-xs text-terminal-emerald border-t border-terminal-emerald/20 pt-2 flex justify-between">
-                            <span>MVP STARTING AT:</span>
-                            <span class="text-neon-magenta">€4,500</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-metal-slate border border-terminal-emerald/30 hover:border-electric-cyan cursor-pointer transition-all duration-300 p-6 flex flex-col justify-between" onclick="openModal('modal-sre')">
-                        <div>
-                            <div class="text-2xl mb-4 text-electric-cyan">[ ⚙ ]</div>
-                            <h4 class="text-lg font-bold mb-2">SRE_ULTRA_TECH</h4>
-                            <p class="text-xs normal-case text-gray-400 mb-4">Critical Infrastructure, GitOps, and total observability for demanding enterprises.</p>
-                        </div>
-                        <div class="text-xs text-terminal-emerald border-t border-terminal-emerald/20 pt-2 flex justify-between">
-                            <span>HOURLY RATE:</span>
-                            <span class="text-electric-cyan">€145</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Terminal Contact Form -->
-            <section id="contact" class="mb-16">
-                <div class="flex items-center mb-6">
-                    <span class="text-neon-magenta mr-2 text-xl">#</span>
-                    <h3 class="text-2xl font-bold glow-emerald">TERMINAL_COMM: ESTABLISH_LINK</h3>
-                </div>
-                
-                <div class="bg-deep-void border border-terminal-emerald/50 p-6 font-mono relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-terminal-emerald/20"></div>
-                    <div id="terminal-history" class="text-xs space-y-2 mb-4">
-                        <div class="text-gray-500">SYSTEM: Awaiting user commands...</div>
-                        <div class="text-gray-500">TIP: Type 'help' to see available parameters.</div>
-                    </div>
-                    <div class="flex items-center text-xs">
-                        <span class="text-terminal-emerald mr-2">visitor@darkroot_os:~$</span>
-                        <input type="text" id="terminal-input" class="terminal-input" placeholder="_" autocomplete="off">
-                    </div>
-                </div>
-            </section>
-
-        </main>
-        
-        <footer class="bg-metal-slate border-t border-terminal-emerald/30 p-4 text-center text-xs text-terminal-emerald/60 z-50">
-            <p>DARKROOT STUDIO © 2026 | AUTHORIZED ACCESS ONLY</p>
-        </footer>
-    </div>
-
-    <!-- Modals -->
-    <div id="modal-sync" class="fixed inset-0 bg-deep-void/90 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm">
-        <div class="bg-metal-slate border border-electric-cyan p-6 max-w-lg w-full relative shadow-[0_0_20px_rgba(0,245,255,0.2)]">
-            <button onclick="closeModal('modal-sync')" class="absolute top-4 right-4 text-electric-cyan hover:text-white">[X]</button>
-            <h3 class="text-2xl text-electric-cyan mb-2">THE_SYNC</h3>
-            <p class="text-sm normal-case mb-4 text-gray-300">Elite consulting. We analyze architecture, security, and scalability.</p>
-            <p class="text-xs text-terminal-emerald">VALUE: €150 (Deductible from the final project).</p>
-        </div>
-    </div>
-
-    <script>
-        // --- Boot Logic ---
-        const bootTextElement = document.getElementById('boot-text');
-        const bootLines = [
-            "INITIALIZING DARKROOT OS PRO_V2...",
-            "RECALIBRATING CORE SKILLS [FRONTEND UPGRADE 95%]",
-            "RECALIBRATING CORE SKILLS [AUDIO UPGRADE 90%]",
-            "SECURING CLOUD CHANNELS... [OK]",
-            "SYSTEM READY. WELCOME TO THE FUTURE OF INFRASTRUCTURE."
-        ];
-        let lineIndex = 0;
-        function typeWriter() {
-            if (lineIndex < bootLines.length) {
-                bootTextElement.innerHTML += bootLines[lineIndex] + "<br>";
-                lineIndex++;
-                setTimeout(typeWriter, 400);
-            } else {
-                setTimeout(() => {
-                    document.getElementById('boot-screen').style.display = 'none';
-                    document.getElementById('os-interface').classList.remove('hidden');
-                    initChart();
-                }, 800);
-            }
-        }
-        window.onload = () => setTimeout(typeWriter, 500);
-
-        // --- Terminal Interaction Logic ---
-        const termInput = document.getElementById('terminal-input');
-        const termHistory = document.getElementById('terminal-history');
-        let contactData = { name: '', email: '', message: '' };
-        let step = 0;
-
-        termInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const val = termInput.value.trim().toLowerCase();
-                const cmdLine = document.createElement('div');
-                cmdLine.innerHTML = `<span class="text-terminal-emerald">visitor@darkroot_os:~$</span> <span class="text-white">${val}</span>`;
-                termHistory.appendChild(cmdLine);
-                
-                processCommand(val);
-                termInput.value = '';
-                termHistory.scrollTop = termHistory.scrollHeight;
-            }
+      // Calculate Hexagon Points
+      const hexPoints = [];
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i - Math.PI / 6;
+        hexPoints.push({
+          x: cx + r * Math.cos(angle),
+          y: cy + r * Math.sin(angle)
         });
+      }
 
-        function processCommand(val) {
-            const response = document.createElement('div');
-            response.className = "text-electric-cyan mt-1 mb-2";
+      // Draw Hexagon
+      ctx.beginPath();
+      hexPoints.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.closePath();
+      ctx.stroke();
 
-            if (step === 0) {
-                if (val === 'help') {
-                    response.innerText = "COMMANDS: 'start' to initiate contact, 'clear' to wipe terminal, 'about' for info.";
-                } else if (val === 'start') {
-                    response.innerText = "SYSTEM: Initiating contact protocol. What is your NAME?";
-                    step = 1;
-                } else if (val === 'clear') {
-                    termHistory.innerHTML = '<div class="text-gray-500">SYSTEM: Terminal cleared.</div>';
-                } else {
-                    response.innerText = "SYSTEM: Command not recognized. Type 'start'.";
-                }
-            } else if (step === 1) {
-                contactData.name = val;
-                response.innerText = `SYSTEM: Received, ${val}. Now, please provide your EMAIL:`;
-                step = 2;
-            } else if (step === 2) {
-                contactData.email = val;
-                response.innerText = "SYSTEM: Email stored. What is your MESSAGE or PROPOSAL?";
-                step = 3;
-            } else if (step === 3) {
-                contactData.message = val;
-                response.className = "text-neon-magenta mt-1 mb-2 glow-magenta";
-                response.innerText = "SYSTEM: ENCRYPTING AND TRANSMITTING DATA TO CENTRAL NODE... [UPLOAD SUCCESSFUL]";
-                step = 0; // Reset
-            }
-            termHistory.appendChild(response);
+      // Draw Nodes
+      ctx.fillStyle = '#050508';
+      hexPoints.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      // Isometric Cube (Inner)
+      const cubeR = r * 0.5;
+
+      // Top face
+      ctx.fillStyle = 'rgba(0, 245, 255, 0.2)';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - cubeR); // top
+      ctx.lineTo(cx + cubeR * 0.866, cy - cubeR * 0.5); // right
+      ctx.lineTo(cx, cy); // center
+      ctx.lineTo(cx - cubeR * 0.866, cy - cubeR * 0.5); // left
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Left face
+      ctx.fillStyle = 'rgba(157, 0, 255, 0.2)';
+      ctx.strokeStyle = '#9D00FF';
+      ctx.shadowColor = '#9D00FF';
+      ctx.beginPath();
+      ctx.moveTo(cx - cubeR * 0.866, cy - cubeR * 0.5);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(cx, cy + cubeR);
+      ctx.lineTo(cx - cubeR * 0.866, cy + cubeR * 0.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Right face
+      ctx.fillStyle = 'rgba(0, 245, 255, 0.1)';
+      ctx.strokeStyle = '#00F5FF';
+      ctx.shadowColor = '#00F5FF';
+      ctx.beginPath();
+      ctx.moveTo(cx + cubeR * 0.866, cy - cubeR * 0.5);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(cx, cy + cubeR);
+      ctx.lineTo(cx + cubeR * 0.866, cy + cubeR * 0.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      animationId = requestAnimationFrame(drawLogo);
+    };
+
+    drawLogo();
+
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width="160"
+      height="160"
+      className={className}
+    />
+  );
+};
+
+// --- Chart Components ---
+const CostChart = () => {
+  const data = {
+    labels: ['Mes 1 (Legacy)', 'Mes 2 (Migración)', 'Mes 3 (Optimizado)'],
+    datasets: [{
+      label: 'Gasto Mensual Cloud ($)',
+      data: [12500, 11000, 7500],
+      backgroundColor: ['#FF007A', '#9D00FF', '#00FF9C'],
+      borderWidth: 0,
+      borderRadius: 4
+    }]
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#050508',
+        borderColor: '#00F5FF',
+        borderWidth: 1,
+        titleColor: '#00F5FF',
+        bodyColor: '#d1d5db'
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#9ca3af' }
+      },
+      x: {
+        grid: { display: false },
+        ticks: { color: '#9ca3af' }
+      }
+    }
+  };
+
+  return (
+    <div className="h-64">
+      <Bar data={data} options={options} />
+    </div>
+  );
+};
+
+const StackChart = () => {
+  const data = {
+    labels: ['AWS / Cloud', 'Terraform / IaC', 'Kubernetes', 'CI/CD Pipelines'],
+    datasets: [{
+      data: [40, 25, 20, 15],
+      backgroundColor: ['#00F5FF', '#9D00FF', '#00FF9C', '#1f2937'],
+      borderColor: '#050508',
+      borderWidth: 2,
+      hoverOffset: 4
+    }]
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '75%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxWidth: 12,
+          color: '#9ca3af',
+          font: { family: "'JetBrains Mono', monospace" }
         }
+      },
+      tooltip: {
+        backgroundColor: '#050508',
+        borderColor: '#9D00FF',
+        borderWidth: 1,
+        titleColor: '#9D00FF',
+        bodyColor: '#d1d5db'
+      }
+    }
+  };
 
-        // --- Navigation ---
-        function scrollToSection(id) {
-            const el = document.getElementById(id);
-            if(el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
-        }
+  return (
+    <div className="h-64">
+      <Doughnut data={data} options={options} />
+    </div>
+  );
+};
 
-        // --- Modals ---
-        function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
-        function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
+// --- Setup Accordion Component ---
+const SetupAccordion = () => {
+  const [openItems, setOpenItems] = useState(new Set());
 
-        // --- Chart.js: Power Pentagon ---
-        function initChart() {
-            const ctx = document.getElementById('skillsRadarChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['CLOUD & SRE', 'BACKEND & DB', 'CI/CD GITOPS', 'FRONTEND EXP', 'AUDIO & ART'],
-                    datasets: [{
-                        label: 'CORE STRENGTH',
-                        data: [95, 92, 95, 95, 90], 
-                        backgroundColor: 'rgba(255, 0, 122, 0.15)',
-                        borderColor: '#FF007A',
-                        pointBackgroundColor: '#00F5FF',
-                        borderWidth: 3,
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(0, 255, 156, 0.2)' },
-                            grid: { color: 'rgba(0, 255, 156, 0.2)' },
-                            pointLabels: { color: '#00FF9C', font: { size: 10 } },
-                            ticks: { display: false, max: 100, min: 0 }
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+  const toggleItem = useCallback((index) => {
+    setOpenItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const setupSteps = [
+    {
+      title: "Instalación de Entorno",
+      content: (
+        <div>
+          <p>Si no lo tienes, descarga e instala Node.js desde el sitio oficial:</p>
+          <a
+            href="https://nodejs.org/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#9D00FF] hover:underline mt-2 inline-block"
+          >
+            https://nodejs.org/
+          </a>
+        </div>
+      )
+    },
+    {
+      title: "Crear el Proyecto",
+      content: (
+        <div>
+          <p>Abre una terminal en VS Code y ejecuta los siguientes comandos para crear la base Vite/React:</p>
+          <div className="bg-[#050508] p-4 rounded mt-3 border border-white/10 font-mono text-[#00FF9C] text-xs">
+            {`> npm create vite@latest darkroot-main -- --template react
+> cd darkroot-main
+> npm install`}
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "Dependencias y Tailwind",
+      content: (
+        <div>
+          <p>Instala los paquetes necesarios de diseño y animación, e inicializa Tailwind:</p>
+          <div className="bg-[#050508] p-4 rounded mt-3 border border-white/10 font-mono text-[#00FF9C] text-xs">
+            {`> npm install lucide-react framer-motion tailwindcss postcss autoprefixer
+> npx tailwindcss init -p`}
+          </div>
+          <p className="mt-4">Configura <code className="text-[#FF007A]">tailwind.config.js</code>:</p>
+          <div className="bg-[#050508] p-4 rounded mt-3 border border-white/10 font-mono text-gray-300 text-xs whitespace-pre">
+            {`export default {
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  theme: { extend: {} },
+  plugins: [],
+}`}
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "Importar Código y Ejecutar",
+      content: (
+        <div>
+          <ul className="list-disc pl-5 space-y-2 mb-4">
+            <li>Borra el contenido de <code className="text-white">src/App.jsx</code> y pega el código premium.</li>
+            <li>Borra <code className="text-white">src/index.css</code> y añade las directivas base de Tailwind (@tailwind base; etc).</li>
+          </ul>
+          <div className="bg-[#050508] p-4 rounded mt-3 border border-white/10 font-mono text-[#00FF9C] text-xs">
+            {`> npm run dev`}
+          </div>
+          <p className="mt-4">Para GitHub:</p>
+          <div className="bg-[#050508] p-4 rounded mt-3 border border-white/10 font-mono text-gray-500 text-xs">
+            {`> git init
+> git add .
+> git commit -m "Initial commit DarkRoot"`}
+          </div>
+        </div>
+      )
+    }
+  ];
+
+  return (
+    <div className="space-y-4">
+      {setupSteps.map((step, index) => (
+        <div key={index} className="glass-panel overflow-hidden">
+          <div
+            className="setup-step p-5 flex justify-between items-center cursor-pointer"
+            onClick={() => toggleItem(index)}
+          >
+            <h4 className="text-sm font-bold uppercase text-[#00F5FF]">
+              {String.fromCharCode(10112 + index)} {step.title}
+            </h4>
+            <span
+              className="text-[#00F5FF] text-xl transition-transform"
+              style={{ transform: openItems.has(index) ? 'rotate(90deg)' : 'rotate(0deg)' }}
+            >
+              +
+            </span>
+          </div>
+          <div
+            className={`setup-content p-5 pt-0 ml-5 text-sm text-gray-400 bg-black/20 border-l-2 border-[#00F5FF] ${
+              openItems.has(index) ? 'block' : 'hidden'
+            }`}
+          >
+            {step.content}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// --- Main ConsultantPage Component ---
+export default function ConsultantPage() {
+  const [activeView, setActiveView] = useState('hero');
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = useCallback((text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, []);
+
+  const navItems = [
+    { id: 'hero', label: '01_Núcleo', icon: '&#9881;' },
+    { id: 'setup', label: '02_Setup_OS', icon: '&#9000;' },
+    { id: 'analytics', label: '03_Impacto', icon: '&#128202;' },
+    { id: 'contact', label: '04_Conexión', icon: '&#9993;' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#050508] text-gray-300 font-mono relative overflow-hidden">
+      <ParticleBackground />
+
+      {/* HUD Scanlines */}
+      <div className="fixed inset-0 pointer-events-none z-50 opacity-50 scanlines" />
+
+      <div className="relative z-10 flex flex-col lg:flex-row min-h-screen">
+        {/* Sidebar */}
+        <aside className="w-full lg:w-80 glass-panel border-r border-white/5 flex flex-col lg:h-screen lg:sticky lg:top-0 z-40">
+          <div className="p-8 flex flex-col items-center border-b border-white/5 relative">
+            <DarkRootLogo />
+            <div className="text-center mt-4">
+              <h1 className="text-2xl font-black italic tracking-tighter uppercase text-white">
+                <span className="text-[#00F5FF]">Dark</span>Root
+              </h1>
+              <span className="text-[10px] tracking-[0.8em] font-bold text-gray-500 uppercase">Studio</span>
+            </div>
+          </div>
+
+          <nav className="p-6 flex-grow flex flex-col gap-2">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveView(item.id)}
+                className={`nav-btn w-full flex items-center gap-4 px-6 py-4 text-[10px] tracking-[0.4em] font-bold uppercase transition-all ${
+                  activeView === item.id
+                    ? 'text-[#00F5FF] bg-[#00F5FF]/10 border border-[#00F5FF]/50'
+                    : 'text-gray-500 hover:text-[#00F5FF] border-transparent'
+                } relative`}
+              >
+                <span className="text-lg" dangerouslySetInnerHTML={{ __html: item.icon }} />
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="p-8 border-t border-white/5 text-[9px] text-gray-600 tracking-widest uppercase text-center font-bold">
+            darkrootstudio.net
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-grow p-6 md:p-12 lg:p-20 relative">
+          <AnimatePresence mode="wait">
+            {/* Hero View */}
+            {activeView === 'hero' && (
+              <motion.div
+                key="hero"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-16"
+              >
+                <div>
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="h-[2px] w-12 bg-[#00F5FF]"></div>
+                    <span className="text-[10px] tracking-[0.5em] font-black uppercase text-[#00FF9C]">Root_Access_Granted</span>
+                  </div>
+                  <h2 className="text-5xl md:text-7xl font-black leading-[0.9] tracking-tighter uppercase italic text-white mb-6">
+                    Elevando <br />
+                    <span className="bg-gradient-to-r from-[#00F5FF] to-[#9D00FF] bg-clip-text text-transparent">Infraestructura</span>
+                  </h2>
+                  <p className="max-w-2xl text-sm md:text-base italic font-light leading-relaxed border-l-4 pl-6 py-2 border-[#00F5FF] text-gray-400">
+                    "Diseñamos arquitecturas invisibles y resilientes. Optimizamos el rendimiento cloud y aseguramos que tus raíces soporten una escala infinita mediante DevOps avanzado."
+                  </p>
+
+                  <div className="flex flex-wrap gap-4 pt-8">
+                    <button
+                      onClick={() => setActiveView('contact')}
+                      className="chamfer-btn px-8 py-3 text-[10px] font-bold tracking-widest uppercase bg-[#00F5FF] text-[#050508] border border-[#00F5FF] hover:scale-105 transition-transform"
+                    >
+                      Iniciar Proyecto
+                    </button>
+                    <button
+                      onClick={() => setActiveView('setup')}
+                      className="chamfer-btn px-8 py-3 text-[10px] font-bold tracking-widest uppercase text-[#9D00FF] border border-[#9D00FF] hover:bg-[#9D00FF]/10 hover:scale-105 transition-all"
+                    >
+                      Ver Manual Setup
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  {[
+                    { icon: '&#9889;', label: "Disponibilidad SLA", value: "99.9%", color: "#00F5FF" },
+                    { icon: '&#8681;', label: "Ahorro Cloud Medio", value: "40%", color: "#00FF9C" },
+                    { icon: '&#9881;', label: "Automatización", value: "100%", color: "#9D00FF" }
+                  ].map((stat, i) => (
+                    <motion.div
+                      key={i}
+                      className="glass-panel p-6 text-center border-t-2"
+                      style={{ borderTopColor: stat.color }}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.1 }}
+                    >
+                      <div className="text-2xl mb-2 mx-auto" style={{ color: stat.color }} dangerouslySetInnerHTML={{ __html: stat.icon }} />
+                      <div className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">{stat.label}</div>
+                      <div className="text-4xl font-black text-white">{stat.value}</div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Setup View */}
+            {activeView === 'setup' && (
+              <motion.div
+                key="setup"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-8"
+              >
+                <div className="border-b border-white/10 pb-8">
+                  <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter">Manual de Setup OS</h3>
+                  <p className="text-xs text-gray-500 font-mono tracking-widest uppercase mt-2">Instrucciones extraídas de: setup_darkroot.txt</p>
+                  <p className="text-sm mt-4 text-gray-400">Despliega cada módulo para revisar los comandos necesarios para arrancar el entorno DarkRoot en Visual Studio Code.</p>
+                </div>
+                <SetupAccordion />
+              </motion.div>
+            )}
+
+            {/* Analytics View */}
+            {activeView === 'analytics' && (
+              <motion.div
+                key="analytics"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-12"
+              >
+                <div className="border-b border-white/10 pb-8">
+                  <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter">Impacto y Rendimiento</h3>
+                  <p className="text-xs text-gray-500 font-mono tracking-widest uppercase mt-2">Visualización de métricas de optimización de infraestructura</p>
+                </div>
+
+                <div className="grid lg:grid-cols-2 gap-8">
+                  <div className="glass-panel p-6">
+                    <h4 className="text-[#00F5FF] text-sm uppercase tracking-widest font-bold mb-6 text-center">Costes AWS: Antes vs Después</h4>
+                    <CostChart />
+                    <p className="text-[10px] text-gray-500 text-center mt-4">Rediseño arquitectónico, autoscaling e instancias reservadas.</p>
+                  </div>
+
+                  <div className="glass-panel p-6">
+                    <h4 className="text-[#9D00FF] text-sm uppercase tracking-widest font-bold mb-6 text-center">Uso del Tech Stack</h4>
+                    <StackChart />
+                    <p className="text-[10px] text-gray-500 text-center mt-4">Distribución tecnológica en despliegues automatizados.</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Contact View */}
+            {activeView === 'contact' && (
+              <motion.div
+                key="contact"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-12"
+              >
+                <div className="border-b border-white/10 pb-8">
+                  <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter">Conexión de Nodo</h3>
+                  <p className="text-xs text-gray-500 font-mono tracking-widest uppercase mt-2">Estableciendo enlace encriptado punto a punto...</p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="glass-panel p-8">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 text-[#00F5FF] mb-2">
+                            <span className="text-xl">&#9993;</span>
+                            <span className="text-[10px] font-black tracking-widest uppercase">Punto de Email</span>
+                          </div>
+                          <h4 className="text-lg md:text-xl font-bold text-white">studiodarkroot@gmail.com</h4>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="glass-panel p-8">
+                      <div>
+                        <div className="flex items-center gap-2 text-[#00FF9C] mb-2">
+                          <span className="text-xl">&#9742;</span>
+                          <span className="text-[10px] font-black tracking-widest uppercase">Línea Segura</span>
+                        </div>
+                        <h4 className="text-3xl font-black tracking-widest text-white">+34 742098040</h4>
+                        <p className="text-[9px] text-gray-500 uppercase font-bold mt-2">Málaga, España (ES)</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6">
+                    <a
+                      href="https://www.linkedin.com/in/jose-cardozo-calderon-597650b3/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="glass-panel p-8 hover:border-[#00F5FF]/50 transition-colors group block"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="text-3xl text-[#00F5FF] group-hover:scale-110 transition-transform">&#128188;</div>
+                          <div>
+                            <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Nodo Corporativo</span>
+                            <span className="text-lg font-bold uppercase text-white group-hover:text-[#00F5FF] transition-colors">LinkedIn Profile</span>
+                          </div>
+                        </div>
+                        <span className="text-xl text-gray-600 group-hover:text-[#00F5FF]">&#8599;</span>
+                      </div>
+                    </a>
+
+                    <a
+                      href="https://josecardozo-github-io.vercel.app/home"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="glass-panel p-8 hover:border-[#9D00FF]/50 transition-colors group block"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="text-3xl text-[#9D00FF] group-hover:scale-110 transition-transform">&#128187;</div>
+                          <div>
+                            <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Host Personal</span>
+                            <span className="text-lg font-bold uppercase text-white group-hover:text-[#9D00FF] transition-colors">Portfolio Web</span>
+                          </div>
+                        </div>
+                        <span className="text-xl text-gray-600 group-hover:text-[#9D00FF]">&#8599;</span>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
+      </div>
+    </div>
+  );
+}
