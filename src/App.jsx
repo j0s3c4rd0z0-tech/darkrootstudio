@@ -213,12 +213,12 @@ export default function App() {
   }
 
   const navItems = [
+    { id: 'consultant', label: '00_CONSULTANT', icon: TerminalIcon },
     { id: 'hero', label: '01_CORE', icon: Monitor },
     { id: 'services', label: '02_SYSTEMS', icon: Layers },
     { id: 'cases', label: '03_LOGS', icon: Briefcase },
     { id: 'stack', label: '04_STACK', icon: Cpu },
     { id: 'pricing', label: '05_PLAN', icon: Zap },
-    { id: 'consultant', label: '00_CONSULTANT', icon: TerminalIcon },
     { id: 'contact', label: '06_CONNECT', icon: Mail },
   ];
 
