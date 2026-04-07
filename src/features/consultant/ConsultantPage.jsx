@@ -438,8 +438,11 @@ export default function ConsultantPage() {
                   &gt;&nbsp;./ESTABLISHING_AUTHORITY.SH
                 </p>
                 <h1 className="glow-emerald" style={{ fontSize: 'clamp(2rem, 6vw, 3.75rem)', fontWeight: 700, marginBottom: '1rem' }}>
-                  DARKROOT<span className="glow-cyan" style={{ color: '#00F5FF' }}>_STUDIO</span>
+                  JOSE_CARDOZO<span className="glow-cyan" style={{ color: '#00F5FF' }}>©</span>
                 </h1>
+                <h2 className="glow-emerald" style={{ fontSize: 'clamp(2rem, 6vw, 3.75rem)', fontWeight: 700, marginBottom: '1rem' }}>
+                  DARKROOT<span className="glow-cyan" style={{ color: '#00F5FF' }}>_STUDIO</span>
+                </h2>
                 <h2 style={{ fontSize: 'clamp(1rem, 3vw, 1.5rem)', color: 'rgba(0,255,156,0.8)', marginBottom: '1.5rem' }}>
                   [ HIGH-END INFRASTRUCTURE &amp; CREATIVE ENGINEERING ]
                 </h2>

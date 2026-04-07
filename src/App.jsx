@@ -300,14 +300,32 @@ export default function App() {
                     <section className="space-y-8">
                        <div className="flex items-center gap-4">
                           <div className={`h-[1px] w-12 ${isDark ? 'bg-[#00F5FF]' : 'bg-[#9D00FF]'}`} />
-                          <span className={`text-[10px] tracking-[0.5em] font-black uppercase ${isDark ? 'text-[#00FF9C]' : 'text-[#9D00FF]'}`}>_Accessing_Main_Core</span>
+                          <span className={`text-[10px] tracking-[0.5em] font-black uppercase ${isDark ? 'text-[#00FF9C]' : 'text-[#9D00FF]'}`}>JOSE_CARDOZO_Accessing_Main_Core</span>
                        </div>
                        <h2 className={`text-6xl md:text-8xl font-black leading-[0.85] tracking-tighter uppercase italic ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          Elevating <br />
-                          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5FF] via-[#9D00FF] to-[#00F5FF]">Infrastructure</span>
+                          JOSE CARDOZO <br />
                        </h2>
+                       <h3>
+                          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5FF] via-[#9D00FF] to-[#00F5FF]">Software Engineer & Technology Consultant</span>
+                       </h3>
+                       <h3>
+                          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5FF] via-[#9D00FF] to-[#00F5FF]">SRE | Cloud Engineer | DevOps | Software Integration | DarkRoot Studio</span>
+                       </h3>
                        <p className={`max-w-2xl text-sm md:text-lg italic font-light leading-relaxed border-l-4 pl-8 py-2 ${isDark ? 'text-gray-400 border-[#00F5FF]' : 'text-gray-600 border-[#9D00FF]'}`}>
-                          "At DarkRoot Studio, we engineer invisible, resilient architectures. We optimize cloud performance, fortify security, and ensure your roots are built for infinite scale."
+                          I deliver resilient, scalable, and automated cloud solutions that support mission-critical operations. Expertise in containerization, CI/CD, and high-availability infrastructure.
+                      </p>
+
+                      <p className={`max-w-2xl text-sm md:text-lg italic font-light leading-relaxed border-l-4 pl-8 py-2 ${isDark ? 'text-gray-400 border-[#00F5FF]' : 'text-gray-600 border-[#9D00FF]'}`}>
+                         "At DarkRoot Consultant Studio, we design and operate resilient, secure, and scalable cloud architectures.
+                            We optimize performance, strengthen security, and enable reliable growth for mission-critical systems.."
+                      </p>
+
+                       <p className={`max-w-2xl text-sm md:text-lg italic font-light leading-relaxed border-l-4 pl-8 py-2 ${isDark ? 'text-gray-400 border-[#00F5FF]' : 'text-gray-600 border-[#9D00FF]'}`}>
+                           Our mission is to empower organizations with performance, reliability, and sustainable growth through automation and engineering excellence.
+                        </p>
+
+                      <p className={`max-w-2xl text-sm md:text-lg italic font-light leading-relaxed border-l-4 pl-8 py-2 ${isDark ? 'text-gray-400 border-[#00F5FF]' : 'text-gray-600 border-[#9D00FF]'}`}>
+                           Our vision is to build a world where every mission-critical system is resilient, efficient, and scalable, enabling businesses to thrive with confidence.
                        </p>
                        <div className="flex flex-wrap gap-6 pt-4">
                           <ChamferButton isDark={isDark} className={isDark ? "bg-[#00F5FF] !text-[#0A0A0F]" : "bg-[#9D00FF] !text-white"}>Initialize Project</ChamferButton>
