@@ -443,9 +443,38 @@ export default function App() {
                 {activeTab === 'services' && (
                   <div className="grid md:grid-cols-3 gap-6">
                     {[
-                      { t: "Cloud Design", d: "High-availability architectures in AWS, Azure & GCP.", i: Layers },
-                      { t: "DevSecOps", d: "Merging security with continuous integration pipelines.", i: ShieldCheck },
-                      { t: "IaC Mastery", d: "Infrastructure as Code with Terraform & Ansible.", i: TerminalIcon }
+                        [
+  { 
+    t: "Cloud Architecture", 
+    d: "Designing resilient, high-availability cloud infrastructures across AWS, Azure & GCP, optimized for scalability and performance.", 
+    i: Layers 
+  },
+  { 
+    t: "Backend & API Services", 
+    d: "Building robust backend systems and APIs with automated infrastructure, monitoring, and fault-tolerance.", 
+    i: TerminalIcon 
+  },
+  { 
+    t: "DevSecOps", 
+    d: "Integrating security into CI/CD pipelines, ensuring compliant, secure, and automated deployment workflows.", 
+    i: ShieldCheck 
+  },
+  { 
+    t: "IaC & Automation", 
+    d: "Infrastructure as Code with Terraform & Ansible, enabling automated provisioning, scaling, and configuration management.", 
+    i: TerminalIcon 
+  },
+  { 
+    t: "Observability & Monitoring", 
+    d: "Implementing logging, metrics, and alerting to ensure performance, reliability, and fast incident response.", 
+    i: EyeIcon 
+  },
+  { 
+    t: "Infrastructure Optimization", 
+    d: "Improving cloud performance, cost-efficiency, and resilience through best practices in architecture and automation.", 
+    i: CpuIcon 
+  }
+]
                     ].map((s, i) => (
                       <GlassPanel key={i} isDark={isDark}>
                         <s.i className="text-[#00F5FF] mb-6" size={32} />
