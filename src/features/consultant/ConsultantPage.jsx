@@ -495,6 +495,12 @@ export default function ConsultantPage() {
                       <h4 style={{ color: '#FF007A', marginBottom: '0.5rem' }}>&gt;&nbsp;SENSORIAL_SOUND_DESIGN</h4>
                       <p style={{ fontSize: '0.75rem', textTransform: 'none', color: '#d1d5db' }}>Original sound design for interfaces, reactive music, and ambient soundscapes.</p>
                     </div>
+                  <div style={{ border: '1px solid rgba(0,245,255,0.3)', padding: '1rem', backgroundColor: '#0A0A0F' }}>
+                    <h4 style={{ color: '#00F5FF', marginBottom: '0.5rem' }}>&gt;&nbsp;BACKEND_AUTOMATOR</h4>
+                    <p style={{ fontSize: '0.75rem', textTransform: 'none', color: '#d1d5db' }}>
+                      Node.js, Python, CI/CD pipelines, automation scripts, cloud orchestration, and high-performance backend systems.
+                    </p>
+                  </div>
                   </div>
                   <RadarChart />
                 </div>
