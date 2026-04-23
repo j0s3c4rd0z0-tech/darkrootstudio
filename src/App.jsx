@@ -20,7 +20,8 @@ import {
   ExternalLink,
   Copy,
   Check,
-  Sparkles
+  Sparkles,
+  Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ConsultantPage from './features/consultant/ConsultantPage';
@@ -439,42 +440,16 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Simplified versions for other modules to maintain responsiveness */}
+                {/* ✅ FIXED: 02_SYSTEMS - array plano + íconos correctos (Eye, Cpu en lugar de EyeIcon, CpuIcon) */}
                 {activeTab === 'services' && (
                   <div className="grid md:grid-cols-3 gap-6">
                     {[
-                        [
-  { 
-    t: "Cloud Architecture", 
-    d: "Designing resilient, high-availability cloud infrastructures across AWS, Azure & GCP, optimized for scalability and performance.", 
-    i: Layers 
-  },
-  { 
-    t: "Backend & API Services", 
-    d: "Building robust backend systems and APIs with automated infrastructure, monitoring, and fault-tolerance.", 
-    i: TerminalIcon 
-  },
-  { 
-    t: "DevSecOps", 
-    d: "Integrating security into CI/CD pipelines, ensuring compliant, secure, and automated deployment workflows.", 
-    i: ShieldCheck 
-  },
-  { 
-    t: "IaC & Automation", 
-    d: "Infrastructure as Code with Terraform & Ansible, enabling automated provisioning, scaling, and configuration management.", 
-    i: TerminalIcon 
-  },
-  { 
-    t: "Observability & Monitoring", 
-    d: "Implementing logging, metrics, and alerting to ensure performance, reliability, and fast incident response.", 
-    i: EyeIcon 
-  },
-  { 
-    t: "Infrastructure Optimization", 
-    d: "Improving cloud performance, cost-efficiency, and resilience through best practices in architecture and automation.", 
-    i: CpuIcon 
-  }
-]
+                      { t: "Cloud Architecture", d: "Designing resilient, high-availability cloud infrastructures across AWS, Azure & GCP, optimized for scalability and performance.", i: Layers },
+                      { t: "Backend & API Services", d: "Building robust backend systems and APIs with automated infrastructure, monitoring, and fault-tolerance.", i: TerminalIcon },
+                      { t: "DevSecOps", d: "Integrating security into CI/CD pipelines, ensuring compliant, secure, and automated deployment workflows.", i: ShieldCheck },
+                      { t: "IaC & Automation", d: "Infrastructure as Code with Terraform & Ansible, enabling automated provisioning, scaling, and configuration management.", i: TerminalIcon },
+                      { t: "Observability & Monitoring", d: "Implementing logging, metrics, and alerting to ensure performance, reliability, and fast incident response.", i: Eye },
+                      { t: "Infrastructure Optimization", d: "Improving cloud performance, cost-efficiency, and resilience through best practices in architecture and automation.", i: Cpu }
                     ].map((s, i) => (
                       <GlassPanel key={i} isDark={isDark}>
                         <s.i className="text-[#00F5FF] mb-6" size={32} />
