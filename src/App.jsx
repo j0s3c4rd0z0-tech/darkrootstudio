@@ -332,6 +332,36 @@ export default function App() {
                           <ChamferButton isDark={isDark} className={isDark ? "bg-[#00F5FF] !text-[#0A0A0F]" : "bg-[#9D00FF] !text-white"}>Initialize Project</ChamferButton>
                           <ChamferButton isDark={isDark} variant="alert">View Systems</ChamferButton>
                        </div>
+					   {/* Intro Video */}
+						<div className="pt-10 max-w-4xl group relative">
+
+						  {/* Glow cyberpunk */}
+						  <div className="absolute -inset-1 bg-gradient-to-r from-[#00F5FF]/20 via-[#9D00FF]/20 to-[#00F5FF]/20 blur-xl opacity-40 group-hover:opacity-100 transition duration-700 rounded-2xl" />
+
+						  <video
+							className={`
+							  relative w-full rounded-2xl border
+							  ${isDark ? 'border-[#00F5FF]/20' : 'border-[#9D00FF]/20'}
+							  shadow-2xl
+							  transition-all duration-700
+							  opacity-60
+							  blur-[1.5px]
+							  scale-[0.98]
+							  group-hover:opacity-100
+							  group-hover:blur-0
+							  group-hover:scale-100
+							`}
+							autoPlay
+							muted
+							loop
+							playsInline
+							controls
+						  >
+							<source src="/4k_JoseC_DarkRoot.mp4" type="video/mp4" />
+							Your browser does not support the video tag.
+						  </video>
+
+						</div>
                     </section>
 
                     <div className="grid md:grid-cols-3 gap-6">
